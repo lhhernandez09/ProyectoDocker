@@ -1,0 +1,183 @@
+/* Dash carga automáticamente todo lo que esté en la carpeta assets/ */
+
+:root {
+  --plano: #f9f9f7;
+  --superficie: #fcfcfb;
+  --tinta: #0b0b0b;
+  --tinta-2: #52514e;
+  --tenue: #898781;
+  --rejilla: #e1e0d9;
+  --base: #c3c2b7;
+  --borde: rgba(11, 11, 11, 0.10);
+  --azul: #2a78d6;
+  --azul-suave: #e8f1fc;
+  --naranja-suave: #fdf0ea;
+  --exito: #006300;
+  --exito-fondo: #e3f3e3;
+  --critico: #b42727;
+  --critico-fondo: #fbe9e9;
+  --aviso-fondo: #fff4d6;
+  --fuente: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --radio: 10px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--plano);
+  color: var(--tinta);
+  font-family: var(--fuente);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.pagina { max-width: 1320px; margin: 0 auto; padding: 24px 16px 40px; }
+
+/* Cabecera ---------------------------------------------------------------- */
+.cabecera {
+  display: flex; flex-wrap: wrap; gap: 16px;
+  align-items: flex-end; justify-content: space-between;
+  margin-bottom: 20px;
+}
+.cabecera h1 { margin: 0; font-size: 28px; letter-spacing: -0.02em; }
+.cabecera p { margin: 4px 0 0; color: var(--tinta-2); }
+.flujo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.flujo .paso {
+  background: var(--superficie); border: 1px solid var(--borde); border-radius: 999px;
+  padding: 4px 12px; font-size: 12px; font-weight: 600; color: var(--tinta-2);
+}
+.flujo .flecha { color: var(--tenue); }
+
+main { display: flex; flex-direction: column; gap: 16px; }
+
+/* Tarjetas ---------------------------------------------------------------- */
+.tarjeta {
+  background: var(--superficie); border: 1px solid var(--borde);
+  border-radius: var(--radio); padding: 16px 18px; min-width: 0;
+}
+.tarjeta-encabezado { margin-bottom: 10px; }
+.tarjeta-encabezado h3 { margin: 0; font-size: 16px; }
+.tarjeta-encabezado p { margin: 2px 0 0; color: var(--tinta-2); font-size: 13px; }
+
+.rejilla-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.rejilla-2 > * { min-width: 0; }
+.rejilla-3-2 { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+.rejilla-2.tablas { gap: 24px; }
+
+/* Las dos clasificaciones lado a lado solo caben en pantallas anchas */
+@media (max-width: 1280px) {
+  .rejilla-2.tablas { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Obtención de datos -------------------------------------------------------- */
+.controles-ingesta { display: flex; flex-wrap: wrap; gap: 20px 32px; align-items: flex-end; }
+.control-grupo label, .filtro label {
+  display: block; font-size: 12px; font-weight: 600; color: var(--tinta-2); margin-bottom: 4px;
+}
+.fila-control { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.selector-corto { width: 170px; }
+
+.boton {
+  font: inherit; font-weight: 600; font-size: 13px; cursor: pointer;
+  padding: 8px 14px; border-radius: 8px;
+  border: 1px solid var(--base); background: var(--superficie); color: var(--tinta);
+}
+.boton:hover:not(:disabled) { background: var(--plano); border-color: var(--tenue); }
+.boton.primario { background: var(--azul); border-color: var(--azul); color: #fff; }
+.boton.primario:hover:not(:disabled) { background: #256abf; }
+.boton:disabled { opacity: 0.5; cursor: not-allowed; }
+.boton:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; }
+
+.mensaje { margin: 12px 0 0; padding: 8px 12px; border-radius: 8px; font-size: 13px; }
+.mensaje.ok { background: var(--exito-fondo); color: var(--exito); }
+.mensaje.error { background: var(--critico-fondo); color: var(--critico); }
+
+.progreso { margin-top: 12px; }
+.progreso-texto { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 13px; margin-bottom: 6px; }
+.progreso-texto span { color: var(--tinta-2); }
+.progreso-barra { height: 8px; background: var(--azul-suave); border-radius: 999px; overflow: hidden; }
+.progreso-relleno { height: 100%; background: var(--azul); border-radius: 999px; transition: width .4s ease; }
+
+#historial-ingestas { margin-top: 14px; }
+
+/* Filtros ------------------------------------------------------------------ */
+.filtros {
+  display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: flex-end;
+  position: sticky; top: 0; z-index: 10;
+  background: var(--plano); padding: 10px 0; border-bottom: 1px solid var(--rejilla);
+}
+.filtro { width: 220px; }
+.filtro.ancho { width: 280px; }
+
+/* Indicadores (KPI) ---------------------------------------------------------- */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.kpi {
+  background: var(--superficie); border: 1px solid var(--borde); border-radius: var(--radio);
+  padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; min-width: 0;
+}
+.kpi-etiqueta { font-size: 12px; color: var(--tinta-2); }
+.kpi-valor { font-size: 28px; font-weight: 600; letter-spacing: -0.01em; }
+.kpi-detalle { font-size: 12px; color: var(--tenue); overflow-wrap: anywhere; }
+
+/* Encabezado del equipo ------------------------------------------------------ */
+.encabezado-equipo { display: flex; gap: 16px; align-items: center; margin-top: 12px; }
+.encabezado-equipo h2 { margin: 0; font-size: 22px; }
+.encabezado-equipo p { margin: 2px 0 0; color: var(--tinta-2); }
+.encabezado-equipo .registro { color: var(--tinta); font-weight: 600; }
+
+/* Tablas ------------------------------------------------------------------- */
+.tabla-contenedor { overflow-x: auto; }
+.tabla { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tabla th {
+  text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.03em; color: var(--tenue);
+  padding: 6px 8px; border-bottom: 1px solid var(--base); white-space: nowrap;
+}
+.tabla td { padding: 6px 8px; border-bottom: 1px solid var(--rejilla); white-space: nowrap; }
+.tabla .num { text-align: right; font-variant-numeric: tabular-nums; }
+.tabla th.num { text-align: right; }
+.tabla .secundario, .secundario { color: var(--tinta-2); }
+.tabla .detalle { white-space: normal; min-width: 220px; }
+.tabla .positivo { color: var(--exito); }
+.tabla .negativo { color: var(--critico); }
+.tabla tr.playoff td:first-child { box-shadow: inset 3px 0 0 var(--azul); }
+.tabla tr.playin td:first-child { box-shadow: inset 3px 0 0 var(--base); }
+.tabla tr.seleccionado td { background: var(--azul-suave); font-weight: 600; }
+.tablas h4 { margin: 0 0 6px; font-size: 14px; }
+
+.equipo { display: inline-flex; align-items: center; gap: 8px; }
+.logo { object-fit: contain; flex: none; }
+.logo-vacio { display: inline-block; flex: none; }
+.sede { color: var(--tenue); width: 18px; font-size: 12px; }
+
+.leyenda-tabla { margin: 10px 0 0; font-size: 12px; color: var(--tinta-2); display: flex; align-items: center; gap: 6px; }
+.leyenda-tabla .marca { display: inline-block; width: 3px; height: 14px; margin-left: 10px; }
+.leyenda-tabla .marca:first-child { margin-left: 0; }
+.marca.playoff { background: var(--azul); }
+.marca.playin { background: var(--base); }
+
+/* Chips de estado: siempre icono o letra + texto, nunca solo color */
+.chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600;
+}
+.chip .icono { font-size: 11px; }
+.chip.completada, .chip.gano { background: var(--exito-fondo); color: var(--exito); }
+.chip.error, .chip.perdio { background: var(--critico-fondo); color: var(--critico); }
+.chip.en_proceso { background: var(--aviso-fondo); color: #7a5300; }
+
+.aviso { color: var(--tenue); margin: 8px 0; }
+
+footer { margin-top: 28px; color: var(--tenue); font-size: 12px; text-align: center; }
+
+/* Ajustes de componentes de Dash */
+.DateInput_input { font-size: 13px; padding: 6px 8px; font-family: var(--fuente); }
+.DateRangePickerInput { border-radius: 8px; overflow: hidden; }
+
+/* Pantallas angostas ------------------------------------------------------------ */
+@media (max-width: 900px) {
+  .rejilla-2, .rejilla-3-2 { grid-template-columns: minmax(0, 1fr); }
+  .filtros { position: static; }
+  .filtro, .filtro.ancho { width: 100%; }
+}

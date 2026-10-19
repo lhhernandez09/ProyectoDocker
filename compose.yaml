@@ -1,0 +1,66 @@
+name: nba-analytics
+
+services:
+  # Contenedor BD: PostgreSQL con el esquema creado desde db/init
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: nba
+      POSTGRES_USER: nba_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      # Solo para conectarse desde tu computadora con pgAdmin/DBeaver (opcional)
+      - "127.0.0.1:5433:5432"
+    healthcheck:
+      # Por TCP: durante la inicialización PostgreSQL solo escucha por socket local,
+      # así que esta prueba pasa únicamente cuando el esquema ya está creado.
+      test: ["CMD-SHELL", "PGPASSWORD=\"$$POSTGRES_PASSWORD\" psql -h 127.0.0.1 -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\" -tAc 'SELECT 1 FROM ingestas LIMIT 1' >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+    restart: unless-stopped
+
+  # Contenedor API-Ubuntu: FastAPI + ETL que consume la API de ESPN
+  api:
+    build: ./api
+    image: nba-api:local
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: nba
+      DB_USER: nba_user
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env}
+      SINCRONIZACION_MINUTOS: ${SINCRONIZACION_MINUTOS:-60}
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/salud"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+    restart: unless-stopped
+
+  # Contenedor Python-Dash: dashboard que consulta la API
+  dash:
+    build: ./dash
+    image: nba-dash:local
+    environment:
+      API_URL: http://api:8000
+      ZONA_HORARIA: ${ZONA_HORARIA:-America/Mexico_City}
+    ports:
+      - "127.0.0.1:8050:8050"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pg_data:
