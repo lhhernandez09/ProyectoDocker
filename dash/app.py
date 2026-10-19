@@ -136,12 +136,12 @@ def construir_layout():
         {"label": etiqueta_temporada(a) + (" (en curso)" if a > completa else ""), "value": a}
         for a in range(completa + 1, completa - 4, -1)
     ]
-    flujo = ["API de ESPN", "FastAPI · Ubuntu", "PostgreSQL", "Dash"]
-    pasos = []
-    for i, paso in enumerate(flujo):
-        if i:
-            pasos.append(html.Span("→", className="flecha"))
-        pasos.append(html.Span(paso, className="paso"))
+    # flujo = ["API de ESPN", "FastAPI · Ubuntu", "PostgreSQL", "Dash"]
+    # pasos = []
+    # for i, paso in enumerate(flujo):
+    #     if i:
+    #         pasos.append(html.Span("→", className="flecha"))
+    #     pasos.append(html.Span(paso, className="paso"))
 
     return html.Div([
         html.Header([
@@ -149,7 +149,7 @@ def construir_layout():
                 html.H1("NBA Analytics"),
                 html.P("Rendimiento de los equipos de la NBA a partir de datos públicos de ESPN"),
             ]),
-            html.Div(pasos, className="flujo"),
+            # html.Div(pasos, className="flujo"),
         ], className="cabecera"),
 
         html.Main([
@@ -184,7 +184,6 @@ def construir_layout():
                 ], className="controles-ingesta"),
                 html.Div(id="mensaje-ingesta"),
                 html.Div(id="progreso-ingesta"),
-                html.Div(id="historial-ingestas"),
             ], subtitulo="La API (FastAPI) consulta ESPN, transforma la respuesta y la guarda "
                          "en PostgreSQL. Cada ejecución queda registrada en la tabla «ingestas»."),
 
@@ -219,13 +218,13 @@ def construir_layout():
                 html.P([html.Span(className="marca playoff"), "Playoffs directos (1-6)",
                         html.Span(className="marca playin"), "Play-In (7-10)"],
                        className="leyenda-tabla"),
-            ], subtitulo="Calculada en PostgreSQL (vista v_clasificacion) con los partidos almacenados."),
+            ]),
 
             html.Div(id="encabezado-equipo", className="encabezado-equipo"),
 
             tarjeta("Puntos por partido", [dcc.Graph(id="graf-tendencia", config=CONFIG_GRAFICA)],
                     subtitulo="Cada punto es un partido; las líneas son la media móvil de "
-                              "10 partidos calculada en SQL con funciones de ventana."),
+                              "10 partidos."),
 
             html.Div([
                 tarjeta("Puntos por cuarto", [dcc.Graph(id="graf-cuartos", config=CONFIG_GRAFICA)],
@@ -233,9 +232,6 @@ def construir_layout():
                 tarjeta("Últimos partidos", [html.Div(id="tabla-partidos")]),
             ], className="rejilla-2"),
         ]),
-
-        html.Footer("Prototipo académico · Datos: API pública de ESPN · "
-                    "Docker Compose: db (PostgreSQL) + api (FastAPI/Ubuntu) + dash (Python-Dash)"),
 
         dcc.Store(id="datos-temporadas"),
         dcc.Store(id="datos-equipos"),
@@ -285,38 +281,8 @@ def chip_estado(estado: str):
     return html.Span([html.Span(icono, className="icono"), texto], className=f"chip {estado}")
 
 
-def describir_parametros(parametros: dict) -> str:
-    if "desde" in parametros:
-        return f"{fecha_corta(parametros['desde'])} → {fecha_corta(parametros['hasta'])}"
-    if "temporada" in parametros:
-        return etiqueta_temporada(int(parametros["temporada"]))
-    return ", ".join(f"{k}: {v}" for k, v in parametros.items()) or "—"
-
-
-def tabla_ingestas(filas: list[dict]):
-    encabezado = html.Thead(html.Tr([
-        html.Th(t, className="num" if t in ("#", "Solicitudes", "Registros") else None)
-        for t in ("#", "Tipo", "Parámetros", "Estado", "Solicitudes", "Registros",
-                  "Inicio", "Detalle")]))
-    cuerpo = []
-    for fila in filas:
-        cuerpo.append(html.Tr([
-            html.Td(fila["ingesta_id"], className="num"),
-            html.Td(TIPOS_INGESTA.get(fila["tipo"], fila["tipo"])),
-            html.Td(describir_parametros(fila["parametros"] or {}), className="secundario"),
-            html.Td(chip_estado(fila["estado"])),
-            html.Td(fila["solicitudes_api"], className="num"),
-            html.Td(fila["registros_guardados"], className="num"),
-            html.Td(fecha_hora(fila["iniciada_en"]), className="secundario"),
-            html.Td(fila["mensaje"] or "—", className="secundario detalle"),
-        ]))
-    return html.Div(html.Table([encabezado, html.Tbody(cuerpo)], className="tabla compacta"),
-                    className="tabla-contenedor")
-
-
 @app.callback(
-    Output("progreso-ingesta", "children"), Output("historial-ingestas", "children"),
-    Output("version-datos", "data"),
+    Output("progreso-ingesta", "children"), Output("version-datos", "data"),
     Output("btn-rango", "disabled"), Output("btn-temporada", "disabled"),
     Output("btn-equipos", "disabled"),
     Input("reloj-ingesta", "n_intervals"), State("version-datos", "data"),
@@ -325,7 +291,7 @@ def monitorear_ingestas(_, version):
     try:
         filas = api_get("/ingestas", limite=6)
     except requests.RequestException:
-        return aviso("Esperando a la API…"), no_update, no_update, True, True, True
+        return aviso("Esperando a la API…"), no_update, True, True, True
 
     en_curso = next((f for f in filas if f["estado"] == "en_proceso"), None)
     progreso = None
@@ -345,14 +311,12 @@ def monitorear_ingestas(_, version):
                      **{"aria-valuenow": porcentaje, "aria-valuemin": 0, "aria-valuemax": 100}),
         ], className="progreso")
 
-    historial = tabla_ingestas(filas) if filas else aviso("Todavía no se ha ejecutado ninguna ingesta.")
-
     # La "versión" de los datos es el id de la última ingesta completada. Al cambiar
     # (o en la primera consulta, cuando aún es None) se recargan filtros y gráficas.
     ultima = max((f["ingesta_id"] for f in filas if f["estado"] == "completada"), default=0)
     nueva_version = ultima if ultima != version else no_update
     ocupado = en_curso is not None
-    return progreso, historial, nueva_version, ocupado, ocupado, ocupado
+    return progreso, nueva_version, ocupado, ocupado, ocupado
 
 
 # ---------------------------------------------------------------------------

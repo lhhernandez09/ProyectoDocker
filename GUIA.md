@@ -309,7 +309,7 @@ hay otra ingesta en curso y `422` si los parámetros no son válidos (por ejempl
 
 http://localhost:8050
 
-1. **Obtención de datos.** Botones para lanzar el ETL, barra de progreso en vivo e historial de ingestas.
+1. **Obtención de datos.** Botones para lanzar el ETL y barra de progreso en vivo mientras corre una carga.
 2. **Filtros** (fijos al hacer scroll): temporada, fase y equipo. Todas las gráficas responden a ellos.
 3. **Indicadores:** partidos jugados, puntos por equipo y partido, mejor récord, partido con más
    puntos y última actualización.
@@ -398,8 +398,9 @@ docker compose ps
    `https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=20260115`
    y señala marcador, cuartos y estadísticas en el JSON.
 4. **Obtención en vivo (1 min).** En el dashboard elige un rango (por ejemplo, la última semana de
-   pretemporada) y pulsa **Obtener partidos**. Señala la barra de progreso y la nueva fila en el
-   historial. Opcional: lanza lo mismo desde Swagger (`/docs` → `POST /ingestas/partidos` → *Try it out*).
+   pretemporada) y pulsa **Obtener partidos**. Señala la barra de progreso y cómo se actualizan
+   las gráficas al terminar. Opcional: lanza lo mismo desde Swagger (`/docs` → `POST /ingestas/partidos`
+   → *Try it out*) y consulta el resultado con `GET /ingestas`.
 5. **Almacenamiento (1 min).** Muestra el diagrama ER y ejecuta las consultas de demostración:
 
 ```bash
@@ -467,7 +468,7 @@ empezar desde cero, por ejemplo después de modificar los archivos de `db/init/`
 | `db` nunca llega a *healthy* | Revisa `docker compose logs db`. Un error en un `.sql` de `db/init/` detiene la inicialización. |
 | Cambié `db/init/*.sql` y no pasa nada | Esos scripts solo corren con el volumen vacío. Usa `docker compose down -v` y vuelve a levantar. |
 | `password authentication failed` tras editar `.env` | El volumen conserva la contraseña original. Restaura la anterior o borra el volumen con `down -v`. |
-| La ingesta termina en "error" | Lee la columna *Detalle* del historial. Normalmente es un problema de Internet o ESPN no respondió. Vuelve a lanzarla: es idempotente. |
+| Una carga no trae datos o falla | Consulta su estado y mensaje con `GET /ingestas` en Swagger (http://localhost:8000/docs) o con la consulta 2 de `db/consultas_demo.sql`. Normalmente es un problema de Internet o ESPN no respondió. Vuelve a lanzarla: es idempotente. |
 | El dashboard dice "Esperando a la API…" | La API está arrancando o se cayó. Revisa `docker compose logs api`. |
 
 ---
