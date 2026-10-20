@@ -7,9 +7,6 @@ PostgreSQL y los **visualiza** en un dashboard de Dash. Corre en 3 contenedores 
 API de ESPN ──► api (FastAPI · Ubuntu) ──► db (PostgreSQL) ◄── api ◄── dash (Python-Dash) ◄── navegador
 ```
 
-La explicación completa (problemática, arquitectura, diseño de la base y guion de la demo) está en
-**[GUIA.md](GUIA.md)**.
-
 ## Arranque rápido
 
 Requisitos: Docker Desktop iniciado (o Docker Engine con Compose v2) e Internet.
